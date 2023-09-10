@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class DiceLoss(nn.Module):
-    def __init__(self, weight=None, size_average=True):
+    def __init__(self):
         super(DiceLoss, self).__init__()
 
     def forward(self, preds, labels, epsilon=1):
