@@ -39,9 +39,9 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
     model_name = "unet"
     tb = SummaryWriter(f'runs/{model_name}')
     
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9) # change to adam
+    #optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
     step_count = 0
-    #loss = nn.CrossEntropyLoss() # change to dice
     loss = DiceLoss()
     #transforms = torch.nn.Sequential(
     #    transforms.CenterCrop((736, 704))
