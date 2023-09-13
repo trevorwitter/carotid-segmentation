@@ -43,9 +43,6 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     step_count = 0
     loss = DiceLoss()
-    #transforms = torch.nn.Sequential(
-    #    transforms.CenterCrop((736, 704))
-    #)
     for epoch in range(epochs):
         print(f'Epoch {epoch}/{epochs - 1}')
         print('-' * 10)
@@ -61,7 +58,6 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
             optimizer.zero_grad()
             preds = net(inputs)
             preds = F.pad(preds, (3,2,7,6))
-            #train_loss = loss(preds, transforms(labels.squeeze(1)))
             train_loss = loss(preds, labels)
             train_loss.backward()
             optimizer.step()
