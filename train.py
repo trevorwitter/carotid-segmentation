@@ -11,11 +11,14 @@ import nibabel as nib
 import matplotlib.pyplot as plt
 from dataset import CarotidDataset
 from unet import UNet
+from utils import DiceLoss
 from torchvision import transforms
+from torch.utils.tensorboard import SummaryWriter
+
 
 def arg_parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--workers", default=8, type=int, help="Number of workers")
+    parser.add_argument("--workers", default=1, type=int, help="Number of workers")
     parser.add_argument("--batch_size", default=32, type=int, help="Number of images in each batch")
     parser.add_argument("--gpu", default=True, type=bool, help="Train on GPU True/False")
     parser.add_argument("--epochs", default=1, type=int, help="Number of training epochs")
@@ -36,12 +39,10 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
     model_name = "unet"
     tb = SummaryWriter(f'runs/{model_name}')
     
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    #optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
     step_count = 0
-    loss = nn.CrossEntropyLoss()
-    transforms = torch.nn.Sequential(
-        transforms.CenterCrop((736, 704))
-    )
+    loss = DiceLoss()
     for epoch in range(epochs):
         print(f'Epoch {epoch}/{epochs - 1}')
         print('-' * 10)
@@ -56,11 +57,13 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
             labels = labels.to(device)
             optimizer.zero_grad()
             preds = net(inputs)
-            train_loss = loss(preds, transforms(labels.squeeze(1)))
+            preds = F.pad(preds, (3,2,7,6))
+            train_loss = loss(preds, labels)
             train_loss.backward()
             optimizer.step()
             step_count += 1
             train_running_loss += train_loss.item()
+            print(f"batch {i} loss: {train_loss.item()}")
     train_loss = train_running_loss / len(trainloader.dataset)
     tb.add_scalar('Loss/Training',
                 train_loss,
@@ -79,8 +82,8 @@ def main(args):
         batch_size=args.batch_size, 
         shuffle=True, 
         num_workers=args.workers)
-    net = UNet(in_channels=3, n_classes=2, padding=True, up_mode='upsample')
-    dataloader = torch.utils.data.DataLoader(data, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
+    net = UNet(in_channels=3, n_classes=1, padding=True, up_mode='upsample')
+    dataloader = torch.utils.data.DataLoader(data, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
     training_loop(net, dataloader, gpu=args.gpu, batch_size=args.batch_size, epochs=args.gpu)
 
 
