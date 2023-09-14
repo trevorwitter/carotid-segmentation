@@ -1,3 +1,4 @@
+models/*
 scratch*
 data/*
 __pycache__/

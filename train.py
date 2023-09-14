@@ -64,6 +64,9 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
             step_count += 1
             train_running_loss += train_loss.item()
             print(f"batch {i} loss: {train_loss.item()}")
+            tb.add_scalar('training running loss',
+                            train_loss.item(),
+                            step_count)
     train_loss = train_running_loss / len(trainloader.dataset)
     tb.add_scalar('Loss/Training',
                 train_loss,
