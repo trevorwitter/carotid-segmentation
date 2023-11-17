@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class DiceLoss(nn.Module):
-    def __init__(self, sigmoid=True, epsilon=1, positive_weight=8):
+    def __init__(self, sigmoid=False, epsilon=1, positive_weight=8):
         super(DiceLoss, self).__init__()
         self.sigmoid = sigmoid
         self.epsilon = epsilon

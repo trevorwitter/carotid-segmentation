@@ -10,8 +10,9 @@ class CarotidDataset(torch.utils.data.Dataset):
         self.image_paths = [os.path.join(image_loc, x) for x in os.listdir(image_loc)]
         mask_loc = os.path.join(root_dir,"Expert mask images")
         self.mask_paths = [os.path.join(mask_loc, x) for x in os.listdir(mask_loc)]
-        self.transforms = torch.nn.Sequential(
-                transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        self._transforms = torch.nn.Sequential(
+            transforms.CenterCrop(512),
+            #transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
             )
 
     def __len__(self):
@@ -21,8 +22,9 @@ class CarotidDataset(torch.utils.data.Dataset):
         image = read_image(self.image_paths[idx])
         image = image.float()
         label = read_image(self.mask_paths[idx])
-        #return self.transforms(image), label
-        return image, label
+        #return image, label
+        return self._transforms(image), self._transforms(label)
+       
 
 if __name__ == "__main__":
     data = CarotidDataset()
