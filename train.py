@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import nibabel as nib
 import matplotlib.pyplot as plt
 from dataset import CarotidDataset
-from unet import UNet
+from unet import UNet, UNetWrapper
 from utils import DiceLoss
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 def arg_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument("--workers", default=1, type=int, help="Number of workers")
-    parser.add_argument("--batch_size", default=32, type=int, help="Number of images in each batch")
+    parser.add_argument("--batch_size", default=16, type=int, help="Number of images in each batch")
     parser.add_argument("--gpu", default=True, type=bool, help="Train on GPU True/False")
     parser.add_argument("--epochs", default=1, type=int, help="Number of training epochs")
     parser.add_argument("--warm_start", default=False, type=bool, help="Loads trained model")
@@ -38,11 +38,9 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
     print(f"Training on {device.type}")
     model_name = "unet"
     tb = SummaryWriter(f'runs/{model_name}')
-    
-    #optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     step_count = 0
-    loss = DiceLoss()
+    loss = DiceLoss(positive_weight=2)
     for epoch in range(epochs):
         print(f'Epoch {epoch}/{epochs - 1}')
         print('-' * 10)
@@ -50,14 +48,12 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
         net = net.to(device)
         train_running_loss = 0.0
         train_running_corrects = 0
-
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data
             inputs = inputs.to(device)
             labels = labels.to(device)
             optimizer.zero_grad()
             preds = net(inputs)
-            preds = F.pad(preds, (3,2,7,6))
             train_loss = loss(preds, labels)
             train_loss.backward()
             optimizer.step()
@@ -79,15 +75,15 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
 
 
 def main(args):
-    data = CarotidDataset()
+    data = CarotidDataset(crop=True)
     dataloader = torch.utils.data.DataLoader(
         data, 
         batch_size=args.batch_size, 
         shuffle=True, 
         num_workers=args.workers)
-    net = UNet(in_channels=3, n_classes=1, padding=True, up_mode='upsample')
+    net = UNetWrapper(in_channels=3, n_classes=1, depth=5, batch_norm=True, padding=True, up_mode='upsample')
     dataloader = torch.utils.data.DataLoader(data, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
-    training_loop(net, dataloader, gpu=args.gpu, batch_size=args.batch_size, epochs=args.gpu)
+    training_loop(net, dataloader, gpu=args.gpu, batch_size=args.batch_size, epochs=args.epochs)
 
 
 if __name__ == "__main__":

@@ -68,10 +68,8 @@ class UNet(nn.Module):
             if i != len(self.down_path) - 1:
                 blocks.append(x)
                 x = F.max_pool2d(x, 2)
-
         for i, up in enumerate(self.up_path):
             x = up(x, blocks[-i - 1])
-
         return self.last(x)
 
 
@@ -125,3 +123,18 @@ class UNetUpBlock(nn.Module):
         out = self.conv_block(out)
 
         return out
+
+
+class UNetWrapper(nn.Module):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.input_batchnorm = nn.BatchNorm2d(kwargs['in_channels'])
+        self.unet = UNet(**kwargs)
+        self.final = nn.Sigmoid()
+        #self._init_weights()
+    
+    def forward(self, input_batch):
+        bn_output = self.input_batchnorm(input_batch)
+        un_output = self.unet(bn_output)
+        fn_output = self.final(un_output)
+        return fn_output
