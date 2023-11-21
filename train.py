@@ -71,7 +71,7 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1, lr=0.001,
 
 
 def main(args):
-    config_path='config/'
+    config_path='./config/'
     config_file=f'{args.model}.yaml'
     config = load_config(config_file, config_path)
     data = CarotidDataset(crop=config['crop'])
