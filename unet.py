@@ -5,7 +5,7 @@ from torch import nn
 import torch.nn.functional as F
 
 
-class UNet(nn.Module):
+class UNetBase(nn.Module):
     def __init__(
         self,
         in_channels=1,
@@ -40,7 +40,7 @@ class UNet(nn.Module):
                            learned upsampling.
                            'upsample' will use bilinear upsampling.
         """
-        super(UNet, self).__init__()
+        super(UNetBase, self).__init__()
         assert up_mode in ('upconv', 'upsample')
         self.padding = padding
         self.depth = depth
@@ -125,11 +125,11 @@ class UNetUpBlock(nn.Module):
         return out
 
 
-class UNetWrapper(nn.Module):
+class UNet(nn.Module):
     def __init__(self, **kwargs):
         super().__init__()
         self.input_batchnorm = nn.BatchNorm2d(kwargs['in_channels'])
-        self.unet = UNet(**kwargs)
+        self.unet = UNetBase(**kwargs)
         self.final = nn.Sigmoid()
         #self._init_weights()
     

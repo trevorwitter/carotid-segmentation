@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import nibabel as nib
 import matplotlib.pyplot as plt
 from dataset import CarotidDataset
-from unet import UNet, UNetWrapper
+from unet import UNet
 from utils import DiceLoss, load_config
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
@@ -81,7 +81,7 @@ def main(args):
         shuffle=config['shuffle'], 
         num_workers=config['num_workers'],
         )
-    net = UNetWrapper(
+    net = UNet(
         in_channels=config['in_channels'], 
         n_classes=config['n_classes'], 
         depth=config['depth'], 
