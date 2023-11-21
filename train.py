@@ -36,7 +36,7 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1, lr=0.001,
     tb = SummaryWriter(f'runs/{model_name}')
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     step_count = 0
-    loss = DiceLoss(positive_weight=config['dice_positive_weight'])
+    loss = DiceLoss(positive_weight=positive_weight)
     for epoch in range(epochs):
         print(f'Epoch {epoch}/{epochs - 1}')
         print('-' * 10)
@@ -79,7 +79,7 @@ def main(args):
         data, 
         batch_size=config['batch_size'], 
         shuffle=config['shuffle'], 
-        num_workers=config['workers'],
+        num_workers=config['num_workers'],
         )
     net = UNetWrapper(
         in_channels=config['in_channels'], 
