@@ -22,7 +22,7 @@ def arg_parse():
     parser.add_argument("--model", default='unet_1', type=str, help="Model Experiment")
     return parser.parse_args()
 
-def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs=1, lr=0.001, positive_weight=1, model_name='unet'):
+def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs=1, lr=0.001, positive_weight=1, early_stopping=None, model_name='unet'):
     if gpu == False:
         device = torch.device("cpu")
     elif gpu == True:
@@ -32,6 +32,7 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             device = torch.device("mps")
         else:
             device = torch.device("cpu")
+    
     print(f"Training on {device.type}")
     tb = SummaryWriter(f'runs/{model_name}')
     optimizer = optim.Adam(net.parameters(), lr=0.001)
@@ -56,7 +57,6 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             optimizer.step()
             train_step_count += 1
             train_running_loss += train_loss.item()
-            print(f"batch {i} train loss: {train_loss.item()}")
             tb.add_scalar('training running loss',
                             train_loss.item(),
                             train_step_count)
@@ -71,22 +71,39 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             val_loss = loss(preds, labels)
             val_step_count += 1
             val_running_loss += val_loss.item()
-            print(f"batch {i} val loss:  {val_loss.item()}")
             tb.add_scalar('validation running loss',
                             val_loss.item(),
                             val_step_count)
             
         train_loss = train_running_loss / len(train_loader.dataset)
         val_loss = val_running_loss / len(val_loader.dataset)
+
+        #Save model for each 
+        if early_stopping != None:
+            stop_count = 0
+            if epoch == 0:
+                best_val = val_loss
+            elif val_loss < best_val:
+                best_val = val_loss
+                stop_count = 0
+            elif val_loss >= best_val:
+                stop_count += 1
+            if stop_count < early_stopping:
+                PATH = f'./models/{model_name}_{epoch}.pth'
+                torch.save(net.state_dict(), PATH)
+            else:
+                pass
+        
+        print(f"Train Loss: {round(train_loss, 3)}, Val Loss: {round(val_loss, 3)}")
         tb.add_scalar('Loss/Training',
                     train_loss,
                     epoch)
         tb.add_scalar('Loss/Validation',
                     val_loss,
                     epoch)
-        PATH = f'./models/{model_name}_{epoch}.pth'
-        torch.save(net.state_dict(), PATH)
-
+    # Save final trained model
+    PATH = f'./models/{model_name}.pth'
+    torch.save(net.state_dict(), PATH)
     print(f'Training complete - model saved to {PATH}')
     tb.close()
 
@@ -142,6 +159,7 @@ def main(args):
         epochs=config['epochs'],
         lr=config['learning_rate'],
         positive_weight=config['dice_positive_weight'],
+        early_stopping=config['early_stopping'],
         model_name=config['model_name'],
         )
 
