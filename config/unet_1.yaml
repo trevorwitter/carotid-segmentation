@@ -1,0 +1,26 @@
+model_name: unet_1
+
+# DATASET SETTINGS
+crop: True
+shuffle: True
+num_workers: 4
+
+# MODEL PARAMETERS
+batch_size: 32
+in_channels: 3
+n_classes: 1
+depth: 5
+batch_norm: True
+padding: True
+up_mode: 'upsample'
+
+# TRAINING PARAMETERS
+gpu: True
+epochs: 10
+learning_rate: 0.001
+dice_positive_weight: 2
+
+# INFERENCE PARAMETERS
+
+
+
