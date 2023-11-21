@@ -1,5 +1,6 @@
 import os
 import json
+import yaml
 import numpy as np
 import pandas as pd
 import argparse
@@ -11,21 +12,17 @@ import nibabel as nib
 import matplotlib.pyplot as plt
 from dataset import CarotidDataset
 from unet import UNet, UNetWrapper
-from utils import DiceLoss
+from utils import DiceLoss, load_config
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 
 def arg_parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--workers", default=1, type=int, help="Number of workers")
-    parser.add_argument("--batch_size", default=16, type=int, help="Number of images in each batch")
-    parser.add_argument("--gpu", default=True, type=bool, help="Train on GPU True/False")
-    parser.add_argument("--epochs", default=1, type=int, help="Number of training epochs")
-    parser.add_argument("--warm_start", default=False, type=bool, help="Loads trained model")
+    parser.add_argument("--model", default='unet_1', type=str, help="Model Experiment")
     return parser.parse_args()
 
-def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
+def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1, lr=0.001, positive_weight=1, model_name='unet'):
     if gpu == False:
         device = torch.device("cpu")
     elif gpu == True:
@@ -36,11 +33,10 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
         else:
             device = torch.device("cpu")
     print(f"Training on {device.type}")
-    model_name = "unet"
     tb = SummaryWriter(f'runs/{model_name}')
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     step_count = 0
-    loss = DiceLoss(positive_weight=2)
+    loss = DiceLoss(positive_weight=positive_weight)
     for epoch in range(epochs):
         print(f'Epoch {epoch}/{epochs - 1}')
         print('-' * 10)
@@ -75,15 +71,34 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1):
 
 
 def main(args):
-    data = CarotidDataset(crop=True)
+    config_path='./config/'
+    config_file=f'{args.model}.yaml'
+    config = load_config(config_file, config_path)
+    data = CarotidDataset(crop=config['crop'])
     dataloader = torch.utils.data.DataLoader(
         data, 
-        batch_size=args.batch_size, 
-        shuffle=True, 
-        num_workers=args.workers)
-    net = UNetWrapper(in_channels=3, n_classes=1, depth=5, batch_norm=True, padding=True, up_mode='upsample')
-    dataloader = torch.utils.data.DataLoader(data, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
-    training_loop(net, dataloader, gpu=args.gpu, batch_size=args.batch_size, epochs=args.epochs)
+        batch_size=config['batch_size'], 
+        shuffle=config['shuffle'], 
+        num_workers=config['num_workers'],
+        )
+    net = UNetWrapper(
+        in_channels=config['in_channels'], 
+        n_classes=config['n_classes'], 
+        depth=config['depth'], 
+        batch_norm=config['batch_norm'], 
+        padding=config['padding'], 
+        up_mode=config['up_mode'],
+        )
+    training_loop(
+        net, 
+        dataloader, 
+        gpu=config['gpu'], 
+        batch_size=config['batch_size'], 
+        epochs=config['epochs'],
+        lr=config['learning_rate'],
+        positive_weight=config['dice_positive_weight'],
+        model_name=config['model_name'],
+        )
 
 
 if __name__ == "__main__":
