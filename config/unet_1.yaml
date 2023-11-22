@@ -16,7 +16,7 @@ up_mode: 'upsample'
 
 # TRAINING PARAMETERS
 gpu: True
-epochs: 10
+epochs: 30
 early_stopping: 5
 learning_rate: 0.001
 dice_positive_weight: 2

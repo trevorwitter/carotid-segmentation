@@ -94,7 +94,8 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             else:
                 pass
         
-        print(f"Train Loss: {round(train_loss, 3)}, Val Loss: {round(val_loss, 3)}")
+        print(f"Train Loss: {round(train_loss, 4)}, Val Loss: {round(val_loss, 4)}")
+        print('-' * 20)
         tb.add_scalar('Loss/Training',
                     train_loss,
                     epoch)
@@ -112,9 +113,11 @@ def main(args):
     config_path='./config/'
     config_file=f'{args.model}.yaml'
     config = load_config(config_file, config_path)
+    
     data = CarotidDataset(crop=config['crop'])
     generator = torch.Generator().manual_seed(42)
-    train_data, val_data, test_data = torch.utils.data.random_split(data, [0.8, 0.1, 0.1], generator=generator)
+    train_data, val_data, _ = torch.utils.data.random_split(data, [0.8, 0.1, 0.1], generator=generator)
+    
     train_loader = torch.utils.data.DataLoader(
         train_data, 
         batch_size=config['batch_size'], 
@@ -122,6 +125,7 @@ def main(args):
         num_workers=config['num_workers'],
         generator=generator
         )
+    
     val_loader = torch.utils.data.DataLoader(
         val_data,
         batch_size=config['batch_size'], 
@@ -129,19 +133,14 @@ def main(args):
         num_workers=config['num_workers'],
         generator=generator
         )
-    test_loader = torch.utils.data.DataLoader(
-        test_data,
-        batch_size=config['batch_size'], 
-        shuffle=config['shuffle'], 
-        num_workers=config['num_workers'],
-        generator=generator
-        )
+    
     dataloader = torch.utils.data.DataLoader(
         data, 
         batch_size=config['batch_size'], 
         shuffle=config['shuffle'], 
         num_workers=config['num_workers'],
         )
+    
     net = UNet(
         in_channels=config['in_channels'], 
         n_classes=config['n_classes'], 
@@ -150,6 +149,7 @@ def main(args):
         padding=config['padding'], 
         up_mode=config['up_mode'],
         )
+    
     training_loop(
         net, 
         train_loader,
