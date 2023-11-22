@@ -25,6 +25,9 @@ The **[Common Carotid Artery Ultrasound](https://data.mendeley.com/datasets/d4xt
 
 
 ## Quickstart
+Download [the dataset](https://data.mendeley.com/datasets/d4xt63mgjm/1) and move the unzipped folder to `/data`
+
+
 With [conda](https://docs.conda.io/en/main/miniconda.html) installed, create and activate environment with the following bash commands:
 ```bash
 >>> conda env create -f environment.yml
