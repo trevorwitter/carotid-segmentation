@@ -22,7 +22,7 @@ def arg_parse():
     parser.add_argument("--model", default='unet_1', type=str, help="Model Experiment")
     return parser.parse_args()
 
-def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1, lr=0.001, positive_weight=1, model_name='unet'):
+def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs=1, lr=0.001, positive_weight=1, early_stopping=None, model_name='unet'):
     if gpu == False:
         device = torch.device("cpu")
     elif gpu == True:
@@ -32,10 +32,12 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1, lr=0.001,
             device = torch.device("mps")
         else:
             device = torch.device("cpu")
+    
     print(f"Training on {device.type}")
     tb = SummaryWriter(f'runs/{model_name}')
     optimizer = optim.Adam(net.parameters(), lr=0.001)
-    step_count = 0
+    train_step_count = 0
+    val_step_count = 0
     loss = DiceLoss(positive_weight=positive_weight)
     for epoch in range(epochs):
         print(f'Epoch {epoch}/{epochs - 1}')
@@ -44,7 +46,7 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1, lr=0.001,
         net = net.to(device)
         train_running_loss = 0.0
         train_running_corrects = 0
-        for i, data in enumerate(trainloader, 0):
+        for i, data in enumerate(train_loader, 0):
             inputs, labels = data
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -53,19 +55,55 @@ def training_loop(net, trainloader, gpu=False, batch_size=8, epochs=1, lr=0.001,
             train_loss = loss(preds, labels)
             train_loss.backward()
             optimizer.step()
-            step_count += 1
+            train_step_count += 1
             train_running_loss += train_loss.item()
-            print(f"batch {i} loss: {train_loss.item()}")
             tb.add_scalar('training running loss',
                             train_loss.item(),
-                            step_count)
-    train_loss = train_running_loss / len(trainloader.dataset)
-    tb.add_scalar('Loss/Training',
-                train_loss,
-                epoch)
+                            train_step_count)
+        net.eval()
+        val_running_loss = 0.0
+        val_running_corrects = 0
+        for i, data in enumerate(val_loader, 0):
+            inputs, labels = data
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            preds = net(inputs)
+            val_loss = loss(preds, labels)
+            val_step_count += 1
+            val_running_loss += val_loss.item()
+            tb.add_scalar('validation running loss',
+                            val_loss.item(),
+                            val_step_count)
+            
+        train_loss = train_running_loss / len(train_loader.dataset)
+        val_loss = val_running_loss / len(val_loader.dataset)
+
+        #Save model for each 
+        if early_stopping != None:
+            stop_count = 0
+            if epoch == 0:
+                best_val = val_loss
+            elif val_loss < best_val:
+                best_val = val_loss
+                stop_count = 0
+            elif val_loss >= best_val:
+                stop_count += 1
+            if stop_count < early_stopping:
+                PATH = f'./models/{model_name}_{epoch}.pth'
+                torch.save(net.state_dict(), PATH)
+            else:
+                pass
+        
+        print(f"Train Loss: {round(train_loss, 3)}, Val Loss: {round(val_loss, 3)}")
+        tb.add_scalar('Loss/Training',
+                    train_loss,
+                    epoch)
+        tb.add_scalar('Loss/Validation',
+                    val_loss,
+                    epoch)
+    # Save final trained model
     PATH = f'./models/{model_name}.pth'
     torch.save(net.state_dict(), PATH)
-
     print(f'Training complete - model saved to {PATH}')
     tb.close()
 
@@ -75,6 +113,29 @@ def main(args):
     config_file=f'{args.model}.yaml'
     config = load_config(config_file, config_path)
     data = CarotidDataset(crop=config['crop'])
+    generator = torch.Generator().manual_seed(42)
+    train_data, val_data, test_data = torch.utils.data.random_split(data, [0.8, 0.1, 0.1], generator=generator)
+    train_loader = torch.utils.data.DataLoader(
+        train_data, 
+        batch_size=config['batch_size'], 
+        shuffle=config['shuffle'], 
+        num_workers=config['num_workers'],
+        generator=generator
+        )
+    val_loader = torch.utils.data.DataLoader(
+        val_data,
+        batch_size=config['batch_size'], 
+        shuffle=config['shuffle'], 
+        num_workers=config['num_workers'],
+        generator=generator
+        )
+    test_loader = torch.utils.data.DataLoader(
+        test_data,
+        batch_size=config['batch_size'], 
+        shuffle=config['shuffle'], 
+        num_workers=config['num_workers'],
+        generator=generator
+        )
     dataloader = torch.utils.data.DataLoader(
         data, 
         batch_size=config['batch_size'], 
@@ -91,12 +152,14 @@ def main(args):
         )
     training_loop(
         net, 
-        dataloader, 
+        train_loader,
+        val_loader, 
         gpu=config['gpu'], 
         batch_size=config['batch_size'], 
         epochs=config['epochs'],
         lr=config['learning_rate'],
         positive_weight=config['dice_positive_weight'],
+        early_stopping=config['early_stopping'],
         model_name=config['model_name'],
         )
 
