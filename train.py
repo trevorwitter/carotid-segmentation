@@ -78,7 +78,7 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
         train_loss = train_running_loss / len(train_loader.dataset)
         val_loss = val_running_loss / len(val_loader.dataset)
 
-        #Save model for each 
+        #Save model for each epoch
         if early_stopping != None:
             stop_count = 0
             if epoch == 0:
@@ -132,13 +132,6 @@ def main(args):
         shuffle=config['shuffle'], 
         num_workers=config['num_workers'],
         generator=generator
-        )
-    
-    dataloader = torch.utils.data.DataLoader(
-        data, 
-        batch_size=config['batch_size'], 
-        shuffle=config['shuffle'], 
-        num_workers=config['num_workers'],
         )
     
     net = UNet(
