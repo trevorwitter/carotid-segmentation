@@ -14,26 +14,27 @@ from dataset import CarotidDataset
 from unet import UNet
 from utils import DiceLoss, load_config
 from torchvision import transforms
+from torchvision.utils import make_grid
 from torch.utils.tensorboard import SummaryWriter
 
 
 def arg_parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default='unet_1', type=str, help="Model Experiment")
+    parser.add_argument('--model', default='unet_1', type=str, help='Model Experiment')
     return parser.parse_args()
 
 def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs=1, lr=0.001, positive_weight=1, early_stopping=None, model_name='unet'):
     if gpu == False:
-        device = torch.device("cpu")
+        device = torch.device('cpu')
     elif gpu == True:
         if torch.cuda.is_available():
             device = torch.device('cuda')
         elif torch.backends.mps.is_available():
-            device = torch.device("mps")
+            device = torch.device('mps')
         else:
-            device = torch.device("cpu")
+            device = torch.device('cpu')
     
-    print(f"Training on {device.type}")
+    print(f'Training on {device.type}')
     tb = SummaryWriter(f'runs/{model_name}')
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     train_step_count = 0
@@ -50,6 +51,10 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             inputs, labels = data
             inputs = inputs.to(device)
             labels = labels.to(device)
+            if epoch == 0 and i == 0:
+                grid = make_grid(inputs)
+                tb.add_image('images', grid, 0)
+                tb.add_graph(net,inputs)
             optimizer.zero_grad()
             preds = net(inputs)
             train_loss = loss(preds, labels)
@@ -57,6 +62,7 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             optimizer.step()
             train_step_count += 1
             train_running_loss += train_loss.item()
+            print(f'batch {i} loss: {train_loss.item()}')
             tb.add_scalar('training running loss',
                             train_loss.item(),
                             train_step_count)
@@ -94,7 +100,7 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             else:
                 pass
         
-        print(f"Train Loss: {round(train_loss, 4)}, Val Loss: {round(val_loss, 4)}")
+        print(f'Train Loss: {round(train_loss, 4)}, Val Loss: {round(val_loss, 4)}')
         print('-' * 20)
         tb.add_scalar('Loss/Training',
                     train_loss,
@@ -157,6 +163,6 @@ def main(args):
         )
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = arg_parse()
     main(args)

@@ -23,11 +23,12 @@ class CarotidDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image = read_image(self.image_paths[idx])
         image = image.float()
-        #image = self._transforms(image)
         label = read_image(self.mask_paths[idx])
-        #label = self._transforms(label)
         if self.crop == True:
             image, label = self.random_crop(image, label)
+        else:
+            image = self._transforms(image)
+            label = self._transforms(label)
         return image, label
     
     def get_center(self, label):

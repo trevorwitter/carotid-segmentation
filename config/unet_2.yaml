@@ -6,7 +6,7 @@ shuffle: True
 num_workers: 8
 
 # MODEL PARAMETERS
-batch_size: 32
+batch_size: 8
 in_channels: 3
 n_classes: 1
 depth: 5
@@ -16,7 +16,7 @@ up_mode: 'upsample'
 
 # TRAINING PARAMETERS
 gpu: True
-epochs: 30
+epochs: 1
 early_stopping: 5
 learning_rate: 0.001
 dice_positive_weight: 8
