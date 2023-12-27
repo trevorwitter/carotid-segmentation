@@ -1,4 +1,4 @@
-model_name: unet_2
+model_name: unet_4
 
 # DATASET SETTINGS
 crop: False
@@ -16,9 +16,9 @@ up_mode: 'upsample'
 
 # TRAINING PARAMETERS
 gpu: True
-epochs: 10
+epochs: 40
 early_stopping: 5
 learning_rate: 0.001
-dice_positive_weight: 8
+dice_positive_weight: 12
 
 # INFERENCE PARAMETERS
