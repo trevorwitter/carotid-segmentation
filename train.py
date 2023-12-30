@@ -95,7 +95,7 @@ def training_loop(net, train_loader, val_loader, gpu=False, batch_size=8, epochs
             elif val_loss >= best_val:
                 stop_count += 1
             if stop_count < early_stopping:
-                PATH = f'./models/{model_name}_{epoch}.pth'
+                PATH = f'./models/{model_name}.pth'
                 torch.save(net.state_dict(), PATH)
             else:
                 pass
