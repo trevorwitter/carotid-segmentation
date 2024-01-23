@@ -16,6 +16,7 @@ from torchvision import transforms
 from torchvision.io import read_image
 from torchvision.transforms.functional import to_pil_image
 import matplotlib.pyplot as plt
+from utils import DiceLoss
 
 
 class carotidSegmentation():
@@ -55,7 +56,7 @@ class carotidSegmentation():
         mask = self._image_transforms(mask)
         mask = mask > 0
         mask = mask.type(torch.int8)
-        mask = mask[0][0].numpy()
+        
         return mask
 
     def predict(self,image_loc):
@@ -63,10 +64,14 @@ class carotidSegmentation():
         preds = self.net(image)
         return preds
 
-    def eval(self):
-        pass
+    def eval(self, image_loc):
+        pred = self.predict(image_loc)
+        label = self.get_label(image_loc)
+        loss = DiceLoss()
+        loss_out = loss(pred, label)
+        return loss_out.item()
     
-    def plot_pred(self, image_loc, labels=None):
+    def plot_pred(self, image_loc, labels=False):
         image = self.get_image(image_loc)
         preds = self.predict(image_loc)
         pred_out = preds[0][0].detach().numpy()
@@ -75,12 +80,14 @@ class carotidSegmentation():
         plt.imshow(pred_out, 
                 cmap='YlOrRd',
                 alpha=pred_out*.5)
-        if labels != None:
+        if labels != False:
             label_out = self.get_label(image_loc)
+            label_out = label_out[0][0]#.numpy()
             plt.imshow(label_out, 
             cmap='RdYlBu', 
             alpha=label_out*.5)
-            plt.xlabel('Prediction = Red, True Label = Blue',)
+            dice_loss = round(self.eval(image_loc), 4)
+            plt.xlabel(f'Prediction = Red, True Label = Blue \n Dice Loss: {dice_loss}')
         else:
             plt.xlabel('Prediction = Red',)
         plt.title('Carotid Artery Segmentation')
