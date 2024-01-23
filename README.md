@@ -42,7 +42,7 @@ python train.py
 ```
 
 #### To train a new model:
-- Create a new `.yaml` config file [like this one](./config/unet_1.yaml) and add to `config/`
+- Create a new `.yaml` config file [like this one](./src/config/unet_1.yaml) and add to `config/`
 
 - Run the following command, specifying your model name as stored in above `.yaml` 
 ```bash
