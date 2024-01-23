@@ -20,6 +20,7 @@ from utils import DiceLoss
 
 
 class carotidSegmentation():
+    """Class for loading and generating predictions via trained segmentation model"""
     def __init__(self, model='unet_3'):
         config_path='./config/'
         config_file=f'{model}.yaml'

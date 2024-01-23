@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 def load_config(config_name, config_path):
     with open(os.path.join(config_path, config_name)) as file:
         config = yaml.safe_load(file)
-
     return config
 
 
 class DiceLoss(nn.Module):
+    """Custom loss for quantifying dice loss; can optionally weight 
+       the positive class' weight via positive_weight"""
     def __init__(self, sigmoid=False, epsilon=1, positive_weight=1):
         super(DiceLoss, self).__init__()
         self.sigmoid = sigmoid
