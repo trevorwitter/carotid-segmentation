@@ -1,7 +1,7 @@
-models/*
+src/models/*
+src/data/Common Carotid Artery Ultrasound Images/*
+src/runs/*
 scratch*
-data/Common Carotid Artery Ultrasound Images/*
-runs/*
 __pycache__/
 .DS_Store
 .ipynb_checkpoints/

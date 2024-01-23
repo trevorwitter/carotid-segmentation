@@ -1,6 +1,7 @@
 # Carotid Segmentation
 
 UNET segmentation model for detecting carotid artery in ultrasound images
+
 ![CA Segmentation](./imgs/CA_segmentation_15epoch.png)
 
 
