@@ -53,8 +53,6 @@ python train.py --model your_model_name
 #### To generate predicted mask on a new ultrasound image:
 ```python
 model = carotidSegmentation()
-
 image = 'file/path/to/image.png'
-
 model.plot_pred(image)
 ```
