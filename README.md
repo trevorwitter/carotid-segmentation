@@ -2,7 +2,7 @@
 
 UNET segmentation model trained to detect and plot carotid artery on recorded ultrasound images
 
-![Carotid Artery Segmentation](./imgs/carotid_pred.svg)
+![Carotid Artery Segmentation](./imgs/carotid_pred.drawio.svg)
 
 
 **Table of Contents**
