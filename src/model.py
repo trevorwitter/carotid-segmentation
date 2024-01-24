@@ -72,12 +72,12 @@ class carotidSegmentation():
         loss_out = loss(pred, label)
         return loss_out.item()
     
-    def plot_pred(self, image_loc, labels=False):
+    def plot_pred(self, image_loc, labels=False, text=True):
         image = self.get_image(image_loc)
         preds = self.predict(image_loc)
         pred_out = preds[0][0].detach().numpy()
         background = image[0][2].detach().numpy()
-        plt.imshow(background, cmap='Greys', alpha=1)
+        plt.imshow(background, cmap='Greys_r', alpha=1)
         plt.imshow(pred_out, 
                 cmap='YlOrRd',
                 alpha=pred_out*.5)
@@ -87,11 +87,14 @@ class carotidSegmentation():
             plt.imshow(label_out, 
             cmap='RdYlBu', 
             alpha=label_out*.5)
-            dice_loss = round(self.eval(image_loc), 4)
-            plt.xlabel(f'Prediction = Red, True Label = Blue \n Dice Loss: {dice_loss}')
+            if text == True:
+                dice_loss = round(self.eval(image_loc), 4)
+                plt.xlabel(f'Prediction = Red, True Label = Blue \n Dice Loss: {dice_loss}')
         else:
-            plt.xlabel('Prediction = Red',)
-        plt.title('Carotid Artery Segmentation')
+            if text == True:
+                plt.xlabel('Prediction = Red',)
+        if text == True:
+            plt.title('Carotid Artery Segmentation')
         plt.tick_params(left = False, right = False , labelleft = False , 
                     labelbottom = False, bottom = False) 
         

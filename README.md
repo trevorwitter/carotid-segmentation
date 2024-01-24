@@ -2,7 +2,7 @@
 
 UNET segmentation model trained to detect and plot carotid artery on recorded ultrasound images
 
-![CA Segmentation](./imgs/CA_segmentation_15epoch.png)
+![CA Segmentation](./imgs/carotid_pred.drawio.svg)
 
 
 **Table of Contents**
@@ -47,4 +47,14 @@ python train.py
 - Run the following command, specifying your model name as stored in above `.yaml` 
 ```bash
 python train.py --model your_model_name
+```
+
+### Inference
+#### To generate predicted mask on a new ultrasound image:
+```python
+model = carotidSegmentation()
+
+image = 'file/path/to/image.png'
+
+model.plot_pred(image)
 ```
