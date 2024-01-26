@@ -9,6 +9,7 @@ UNET segmentation model trained to detect and plot carotid artery on recorded ul
 
 - [Dataset](#dataset)
 - [Model Architecture](#model-architecture)
+- [Model Evaluation](#model-evaluation)
 - [Quickstart](#quickstart)
 
 
@@ -23,6 +24,19 @@ The **[Common Carotid Artery Ultrasound](https://data.mendeley.com/datasets/d4xt
 ## Model Architecture
 ![U-Net Architecture](imgs/unet.png)
 [U-Net](https://arxiv.org/abs/1505.04597) is a is a semantic segmentation technique originally proposed for medical imaging segmentation. The architecture contains two paths. First path is the contraction path (encoder) which is used to capture the context in the image. The encoder is just a traditional stack of convolutional and max pooling layers. The second path is the symmetric expanding path (decoder) which is used to enable precise localization using transposed convolutions.
+
+## Model Evaluation
+$$\ DiceLoss(y,\bar p) = 1 - \frac{(2y\bar p + 1)}{(y + \bar p + 1)}$$
+
+
+Model scoring is conducted via **dice loss**, quantifying overlap of predicted and ground-truth masks. See [Sudre et al, 2017](https://arxiv.org/abs/1707.03237) paper on generalized dice overlap for image segmentation. 
+
+**Mean baseline model score on test set data: **0.000595****
+
+![model scoring](imgs/model_scoring_1811.png)
+
+. Dice score can be calculated via `carotidSegmentation.plot_pred(image, label=True)` for any image having an associated label, as per image above. 
+
 
 
 ## Quickstart
