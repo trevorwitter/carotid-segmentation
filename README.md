@@ -29,9 +29,13 @@ The **[Common Carotid Artery Ultrasound](https://data.mendeley.com/datasets/d4xt
 $$\ DiceLoss(y,\bar p) = 1 - \frac{(2y\bar p + 1)}{(y + \bar p + 1)}$$
 
 
-Model scoring is conducted via **dice loss**, quantifying overlap of predicted and ground-truth masks. See [Sudre et al, 2017](https://arxiv.org/abs/1707.03237) paper on generalized dice overlap for image segmentation.
+Model scoring is conducted via **dice loss**, quantifying overlap of predicted and ground-truth masks. See [Sudre et al, 2017](https://arxiv.org/abs/1707.03237) paper on generalized dice overlap for image segmentation. 
+
+**Mean baseline model score on test set data: **0.000595****
 
 ![model scoring](imgs/model_scoring_1811.png)
+
+. Dice score can be calculated via `carotidSegmentation.plot_pred(image, label=True)` for any image having an associated label, as per image above. 
 
 
 
