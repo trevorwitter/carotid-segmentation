@@ -30,7 +30,7 @@ Model scoring is conducted via **dice loss**, quantifying overlap of predicted a
 
 $$\ DiceLoss(y,\bar p) = 1 - \frac{(2y\bar p + 1)}{(y + \bar p + 1)}$$
 
-**Mean baseline model score on test set data: **0.000595****
+**Mean baseline model dice loss score on test set data: **0.000595****
 
 ![model scoring](imgs/model_scoring_1811.png)
 
