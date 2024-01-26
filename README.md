@@ -35,7 +35,7 @@ Model scoring is conducted via **dice loss**, quantifying overlap of predicted a
 
 ![model scoring](imgs/model_scoring_1811.png)
 
-. Dice score can be calculated via `carotidSegmentation.plot_pred(image, label=True)` for any image having an associated label, as per image above. 
+Dice score can be calculated via `carotidSegmentation.plot_pred(image, label=True)` for any image having an associated label, as per image above. 
 
 
 
