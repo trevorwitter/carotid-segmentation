@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 def arg_parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', default='unet_1', type=str, help='Model Experiment')
+    parser.add_argument('--model', default='unet_3', type=str, help='Model Experiment')
     return parser.parse_args()
 
 def eval(test_loader, net, gpu=True):
@@ -36,21 +36,21 @@ def eval(test_loader, net, gpu=True):
     net = net.to(device)
     net.eval()
     test_step_count = 0
+    test_running_loss = 0.0
     for i, data in enumerate(test_loader, 0):
-            test_running_loss = 0.0
-            inputs, labels = data
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-            preds = net(inputs)
-            test_loss = loss(preds, labels)
-            test_step_count += 1
-            test_running_loss += test_loss.item()
+        inputs, labels = data
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        preds = net(inputs)
+        test_loss = loss(preds, labels)
+        test_step_count += 1
+        test_running_loss += test_loss.item()
     test_loss = test_running_loss / len(test_loader.dataset)
     return test_loss
 
-def main(model):
+def main(args):
     config_path='./config/'
-    config_file=f'{model}.yaml'
+    config_file=f'{args.model}.yaml'
     config = load_config(config_file, config_path)
     data = CarotidDataset(crop=config['crop'])
     generator = torch.Generator().manual_seed(42)
@@ -70,7 +70,7 @@ def main(model):
                 batch_norm=config['batch_norm'], 
                 padding=config['padding'], 
                 up_mode=config['up_mode'])
-    net.load_state_dict(torch.load(f'models/{model}.pth'))
+    net.load_state_dict(torch.load(f'models/{args.model}.pth'))
     
     test_loss = eval(test_loader, net)
     print(f'Test Set Dice Loss: {test_loss}')
