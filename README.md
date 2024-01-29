@@ -49,7 +49,7 @@ With [conda](https://docs.conda.io/en/main/miniconda.html) installed, create and
 ```
 
 ### Training
-#### To run baseline model:
+#### To train baseline model:
 ```bash
 python train.py
 ```
